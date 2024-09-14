@@ -41,6 +41,10 @@ def token_generator(prompt: Prompt) -> Generator[str, None, None]:
     yield "data: [DONE]\n\n"
 
 
+@app.get("/")
+async def get_default():
+    return "Studylingo API", 200
+
 @app.post("/prompt")
 async def prompt_endpoint(prompt: Prompt):
     if not prompt.text:
