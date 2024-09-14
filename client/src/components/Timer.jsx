@@ -5,6 +5,7 @@ function PomodoroTimer() {
   const [workSeconds, setWorkSeconds] = useState(0); // Default to 0 seconds
   const [breakMinutes, setBreakMinutes] = useState(5); // Default to 5 minutes
   const [breakSeconds, setBreakSeconds] = useState(0); // Default to 0 seconds
+
   const [cycles, setCycles] = useState(4); // Default to 4 cycles
   const [currentCycle, setCurrentCycle] = useState(1);
   const [timeElapsed, setTimeElapsed] = useState(0);
@@ -13,6 +14,7 @@ function PomodoroTimer() {
   const [isPaused, setIsPaused] = useState(false);
   const [mode, setMode] = useState(''); // Mode input
   const intervalRef = useRef(null);
+  const [endTime, setEndTime] = useState(null);
 
   // Convert minutes and seconds to total seconds
   const getTotalSeconds = (minutes, seconds) => minutes * 60 + seconds;
@@ -45,18 +47,27 @@ function PomodoroTimer() {
   };
 
   // Start the timer
-  const startTimer = () => {
-    if (!mode) {
+  const startTimer = (overridedMode, overridedEndTime, overridedTimeElapse) => {
+    if (!mode && !overridedMode) {
       alert('Please enter a mode for the session');
       return;
     }
 
     setIsRunning(true);
     setIsPaused(false);
-    saveToLocalStorage('mode', mode);
+    saveToLocalStorage('mode', overridedMode || mode);
+    saveToLocalStorage('endTime', overridedEndTime || Date.now() + getTotalSeconds(workMinutes, workSeconds) * 1000);
+    saveToLocalStorage('playState', 'running')
+    // const timeElapsedFromStorage = loadFromLocalStorage('timeElapsed', null)
+    // if (timeElapsedFromStorage) {
+    //     alert(timeElapsedFromStorage);
+    //     setTimeElapsed(timeElapsedFromStorage)
+    // }
 
+    clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
       setTimeElapsed((prev) => {
+        saveToLocalStorage('timeElapsed', prev);
         if (prev <= 0) {
           clearInterval(intervalRef.current);
           if (currentCycle < cycles) {
@@ -67,6 +78,7 @@ function PomodoroTimer() {
               : getTotalSeconds(breakMinutes, breakSeconds);
           } else {
             stopTimer(); // Stop after all cycles are completed
+            localStorage.clear();
           }
         }
         return prev - 1;
@@ -79,6 +91,7 @@ function PomodoroTimer() {
     clearInterval(intervalRef.current);
     setIsPaused(true);
     setIsRunning(false);
+    saveToLocalStorage('playState', 'paused')
     saveToLocalStorage('timeElapsed', timeElapsed);
   };
 
@@ -126,8 +139,18 @@ function PomodoroTimer() {
   }, [workMinutes, workSeconds]);
 
   useEffect(() => {
-    saveToLocalStorage('timeElapsed', timeElapsed);
-  }, [timeElapsed]);
+    const modeFromStorage = loadFromLocalStorage('mode', null);
+    const endTimeFromStorage = loadFromLocalStorage('endTime', null);
+    const elapsedTimeFromStorage = loadFromLocalStorage('timeElapsed', null);
+    const playStateFromStorage = loadFromLocalStorage('playState', null);
+    // alert(`LAH, ${modeFromStorage}, ${endTimeFromStorage}, ${elapsedTimeFromStorage}`)
+    setMode(modeFromStorage);
+    setEndTime(endTimeFromStorage);
+    setTimeElapsed(elapsedTimeFromStorage);
+    if (modeFromStorage && endTimeFromStorage && elapsedTimeFromStorage && playStateFromStorage === 'running') {
+      startTimer(modeFromStorage, endTimeFromStorage, elapsedTimeFromStorage);
+    }
+  }, []);
 
   return (
     <div className="pomodoro-container">
