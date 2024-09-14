@@ -10,3 +10,4 @@ services:
         published: 8000
     environment:
       COHERE_API_KEY: ${COHERE_API_KEY}
+      MONGO_URI: ${MONGO_URI}
