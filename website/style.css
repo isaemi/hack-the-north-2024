@@ -1,23 +1,17 @@
-.star {
-    background-image: url('images/star1.png');
-    background-size: contain; /* Ensure the background image fits within the element */
-    background-repeat: no-repeat; /* Prevent repeating the background image */
-    width: 50px; /* Adjust size as needed */
-    height: 50px; /* Adjust size as needed */
-    margin-left: 100px;
-    margin-top: 100px;
-}
 #background {
     background-image: url('images/background.png');
     background-size: cover;
     background-repeat: no-repeat;
     width: 100%;
-    height: 90vh;
+    height: 100vh;
     margin: 0;
-    flex-direction: column; /* Stack items vertically */
-    align-items: center; /* Center items horizontally */
-    justify-content: center; /* Center items vertically */
-    text-align: center; /* Center text inside the container */
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+}
+#background, img{
+    max-width: 100%;;
 }
 .title{
     font-size: 50px;
@@ -41,4 +35,20 @@
     color: #B36FD4;
     transition: 0.4s ease-in-out;
 }
-
+.bringo{
+    float: right;
+    margin-right: 7%;
+    margin-top: 10%;
+    animation: animate 1s linear infinite;
+}
+@keyframes animate {
+    0% {
+        margin-top: 10%;
+    }
+    50% {
+        margin-top: 12%;
+    }
+    100% {
+        margin-top: 10%;
+    }
+}
