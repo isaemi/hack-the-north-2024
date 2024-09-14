@@ -1,30 +1,59 @@
-from typing import Union
-from fastapi import FastAPI
-from tinytune.tool import tool
-from CohereContext import CohereContext, CohereMessage
-from dotenv import load_dotenv
-
-import sys
 import os
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+from typing import Generator
+from CohereContext import CohereContext, CohereMessage  # Import CohereMessage as well
+from dotenv import load_dotenv
 
 load_dotenv()
 
-# Example usage:
-if __name__ == "__main__":
-    # Streaming example
-    stream_context = CohereContext("command-r-plus", str(os.getenv("COHERE_KEY")))
-    stream_context.Prompt(CohereMessage("USER", "What is an LLM?"))
-    stream_context.Run(stream=True)
-
-
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+# Load API key from environment variable
+API_KEY = os.getenv("COHERE_API_KEY")
+if not API_KEY:
+    raise EnvironmentError("COHERE_KEY environment variable not set")
+
+# Initialize CohereContext
+cohere_context = CohereContext("command-r-plus", API_KEY)
 
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+class Prompt(BaseModel):
+    text: str
+    role: str = "USER"  # Default role is USER, but can be overridden
+
+
+def token_generator(prompt: Prompt) -> Generator[str, None, None]:
+    cohere_context.Prompt(CohereMessage(prompt.role, prompt.text))
+    for token in cohere_context.Run(stream=True):
+        if token:
+            print(token, end="", flush=True)
+
+        yield f"data: {token}\n\n"
+    yield "data: [DONE]\n\n"
+
+
+@app.post("/prompt")
+async def prompt_endpoint(prompt: Prompt):
+    if not prompt.text:
+        raise HTTPException(status_code=400, detail="Prompt text cannot be empty")
+
+    return StreamingResponse(token_generator(prompt), media_type="text/event-stream")
+
+
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)
