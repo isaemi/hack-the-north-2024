@@ -6,6 +6,8 @@
         "default_popup": "index.html"
     },
     "permissions": [
-        "storage"
+        "storage",
+        "activeTab",
+        "tab"
     ]
 }
