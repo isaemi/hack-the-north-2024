@@ -58,11 +58,6 @@ function PomodoroTimer() {
     saveToLocalStorage('mode', overridedMode || mode);
     saveToLocalStorage('endTime', overridedEndTime || Date.now() + getTotalSeconds(workMinutes, workSeconds) * 1000);
     saveToLocalStorage('playState', 'running')
-    // const timeElapsedFromStorage = loadFromLocalStorage('timeElapsed', null)
-    // if (timeElapsedFromStorage) {
-    //     alert(timeElapsedFromStorage);
-    //     setTimeElapsed(timeElapsedFromStorage)
-    // }
 
     clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
@@ -143,7 +138,6 @@ function PomodoroTimer() {
     const endTimeFromStorage = loadFromLocalStorage('endTime', null);
     const elapsedTimeFromStorage = loadFromLocalStorage('timeElapsed', null);
     const playStateFromStorage = loadFromLocalStorage('playState', null);
-    // alert(`LAH, ${modeFromStorage}, ${endTimeFromStorage}, ${elapsedTimeFromStorage}`)
     setMode(modeFromStorage);
     setEndTime(endTimeFromStorage);
     setTimeElapsed(elapsedTimeFromStorage);
