@@ -12,6 +12,7 @@ function PomodoroTimer() {
   const [isBreak, setIsBreak] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [isStarted, setIsStarted] = useState(false); // New state to manage whether the settings or timer is shown
   const [mode, setMode] = useState(''); // Mode input
   const intervalRef = useRef(null);
   const [endTime, setEndTime] = useState(null);
@@ -55,6 +56,7 @@ function PomodoroTimer() {
 
     setIsRunning(true);
     setIsPaused(false);
+    setIsStarted(true); // Hide settings and show timer
     saveToLocalStorage('mode', overridedMode || mode);
     saveToLocalStorage('endTime', overridedEndTime || Date.now() + getTotalSeconds(workMinutes, workSeconds) * 1000);
     saveToLocalStorage('playState', 'running')
@@ -105,6 +107,7 @@ function PomodoroTimer() {
     setTimeElapsed(getTotalSeconds(workMinutes, workSeconds));
     setCurrentCycle(1);
     setIsBreak(false);
+    setIsStarted(false); // Show settings again on reset
     localStorage.clear(); // Clear all stored data on reset
   };
 
@@ -148,92 +151,95 @@ function PomodoroTimer() {
 
   return (
     <div className="pomodoro-container">
-      <h2>Pomodoro Timer</h2>
+      <h2>TIMER</h2>
 
-      <div className="timer-display">
-        <h1>{formatTime(timeElapsed)}</h1>
-      </div>
-
-      <div className="settings">
-        <div className="setting-item">
-          <label>What will you be doing?</label>
-          <input
-            type="text"
-            value={mode}
-            onChange={(e) => setMode(e.target.value)}
-            placeholder="Enter your session activity"
-            disabled={isRunning || isPaused}
-          />
-        </div>
-
-        <div className="setting-item">
-          <label>Work Duration (Minutes:Seconds):</label>
-          <div>
-            <input
-              type="number"
-              value={workMinutes}
-              onChange={(e) => handleMinutesChange(e, setWorkMinutes)}
-              disabled={isRunning || isPaused}
-              min="0"
-            />
-            <span>:</span>
-            <input
-              type="number"
-              value={workSeconds}
-              onChange={(e) => handleSecondsChange(e, setWorkSeconds)}
-              disabled={isRunning || isPaused}
-              min="0"
-              max="59"
-            />
+      {isStarted ? (
+        // Show timer only when started
+        <div className="timer-display">
+          <h1 style={{ fontSize: '4rem' }}>{formatTime(timeElapsed)}</h1>
+          <div className="buttons">
+            {isRunning && (
+              <button onClick={pauseTimer}>PAUSE</button>
+            )}
+            {isPaused && (
+              <button onClick={resumeTimer}>RESUME</button>
+            )}
+            <button onClick={resetTimer}>RESET</button>
           </div>
         </div>
-
-        <div className="setting-item">
-          <label>Break Duration (Minutes:Seconds):</label>
-          <div>
+      ) : (
+        <div className="settings">
+          {/* <div className="setting-item">
+            <label>What will you be doing?</label>
             <input
-              type="number"
-              value={breakMinutes}
-              onChange={(e) => handleMinutesChange(e, setBreakMinutes)}
+              type="text"
+              value={mode}
+              onChange={(e) => setMode(e.target.value)}
+              placeholder="Enter your session activity"
               disabled={isRunning || isPaused}
-              min="0"
             />
-            <span>:</span>
+          </div> */}
+
+          <div className="setting-item">
+            <label>Work Duration:</label>
+            <div>
+              <input
+                type="number"
+                value={workMinutes}
+                onChange={(e) => handleMinutesChange(e, setWorkMinutes)}
+                disabled={isRunning || isPaused}
+                min="0"
+              />
+              <span>:</span>
+              <input
+                type="number"
+                value={workSeconds}
+                onChange={(e) => handleSecondsChange(e, setWorkSeconds)}
+                disabled={isRunning || isPaused}
+                min="0"
+                max="59"
+              />
+            </div>
+          </div>
+
+          <div className="setting-item">
+            <label>Break Duration:</label>
+            <div>
+              <input
+                type="number"
+                value={breakMinutes}
+                onChange={(e) => handleMinutesChange(e, setBreakMinutes)}
+                disabled={isRunning || isPaused}
+                min="0"
+              />
+              <span>:</span>
+              <input
+                type="number"
+                value={breakSeconds}
+                onChange={(e) => handleSecondsChange(e, setBreakSeconds)}
+                disabled={isRunning || isPaused}
+                min="0"
+                max="59"
+              />
+            </div>
+          </div>
+
+          <div className="setting-item">
+            <label>Cycles:</label>
             <input
               type="number"
-              value={breakSeconds}
-              onChange={(e) => handleSecondsChange(e, setBreakSeconds)}
+              value={cycles}
+              onChange={(e) => setCycles(e.target.value)}
               disabled={isRunning || isPaused}
-              min="0"
-              max="59"
+              min="1"
             />
           </div>
-        </div>
 
-        <div className="setting-item">
-          <label>Cycles:</label>
-          <input
-            type="number"
-            value={cycles}
-            onChange={(e) => setCycles(e.target.value)}
-            disabled={isRunning || isPaused}
-            min="1"
-          />
+          <div className="buttons">
+            <button onClick={startTimer}>START</button>
+          </div>
         </div>
-      </div>
-
-      <div className="buttons">
-        {!isRunning && !isPaused && (
-          <button onClick={startTimer}>Start</button>
-        )}
-        {isRunning && (
-          <button onClick={pauseTimer}>Pause</button>
-        )}
-        {isPaused && (
-          <button onClick={resumeTimer}>Resume</button>
-        )}
-        <button onClick={resetTimer}>Reset</button>
-      </div>
+      )}
     </div>
   );
 }
