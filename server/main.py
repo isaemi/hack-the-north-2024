@@ -1,12 +1,13 @@
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
-from typing import Generator
-from CohereContext import CohereContext, CohereMessage  # Import CohereMessage as well
 from dotenv import load_dotenv
+import cohere
+import json
+from crud import add_quiz, retrieve_quiz, retrieve_quizzes
+from model import Quiz
 
+# Load environment variables from the .env file (if present)
 load_dotenv()
 
 app = FastAPI()
@@ -24,38 +25,107 @@ API_KEY = os.getenv("COHERE_API_KEY")
 if not API_KEY:
     raise EnvironmentError("COHERE_KEY environment variable not set")
 
-# Initialize CohereContext
-cohere_context = CohereContext("command-r-plus", API_KEY)
-
-class Prompt(BaseModel):
-    text: str
-    role: str = "USER"  # Default role is USER, but can be overridden
-
-def token_generator(prompt: Prompt) -> Generator[str, None, None]:
-    cohere_context.Prompt(CohereMessage(prompt.role, prompt.text))
-    for token in cohere_context.Run(stream=True):
-        if token:
-            print(token, end="", flush=True)
-
-        yield f"data: {token}\n\n"
-    yield "data: [DONE]\n\n"
+# Initialize the Cohere client with your API key
+co = cohere.Client(os.getenv("COHERE_API_KEY"))
 
 
-@app.post("/prompt")
-async def prompt_endpoint(prompt: Prompt):
-    if not prompt.text:
-        raise HTTPException(status_code=400, detail="Prompt text cannot be empty")
+@app.get("/")
+async def get_default():
+    return "Studylingo API", 200
 
-    return StreamingResponse(token_generator(prompt), media_type="text/event-stream")
 
-@app.post("/summarize")
-async def summarize_endpoint(url: str, language="English"):
+@app.get("/summarize")
+async def summarize_endpoint(url: str, language="en"):
     if not url:
         raise HTTPException(status_code=400, detail="URL cannot be empty")
+
+    response = co.chat(
+        message=f"The preferred language is {language}. This is the content: {url}",
+        model="command-r-plus",
+        preamble="Write key points of this content as bullet points in the preferred language. Keep it concise and short. Return in JSON format",
+        response_format={
+            "type": "json_object",
+            "schema": {
+                "type": "object",
+                "required": ["summary"],
+                "properties": {
+                    "summary": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                    },
+                },
+            },
+        },
+    )
+
+    return json.loads(response.text)
+
+
+@app.post("/quiz")
+async def quiz_endpoint(url: str, language="en", amount=1):
+    if not url:
+        raise HTTPException(status_code=400, detail="URL cannot be empty")
+
+    response = co.chat(
+        model="command-r-plus",
+        message=f"Return a {amount} of quizzes from the content: {url}. The preferred language is {language}. Return in JSON format",
+        response_format={
+            "type": "json_object",
+            "schema": {
+                "type": "object",
+                "required": ["quiz"],
+                "properties": {
+                    "quiz": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["question", "options", "answer"],
+                            "properties": {
+                                "question": {"type": "string"},
+                                "options": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": ["option", "key"],
+                                        "properties": {
+                                            "option": {"type": "string"},
+                                            "key": {"type": "integer"},
+                                        },
+                                    },
+                                },
+                                "answer": {"type": "integer"},
+                            },
+                        },
+                    }
+                },
+            },
+        },
+    )
+
+    # Parse the response
+    quiz_data = json.loads(response.text)
     
-    prompt = f"Write a short summary of this content as bullet points in the preferred language. The preferred language is {language}. This is the content: {url}. Do not return anything else aside bullet points."
+    if "quiz" not in quiz_data:
+        raise HTTPException(status_code=500, detail="Invalid response format")
+
+    # Store the quiz in MongoDB
+    quiz = await add_quiz(Quiz(quiz=quiz_data["quiz"]))
     
-    return StreamingResponse(token_generator(Prompt(text=prompt)), media_type="text/event-stream")
+    return {"quiz_id": quiz["id"]}
+
+# Get all quizzes
+@app.get("/quizzes/")
+async def get_quizzes():
+    quizzes = await retrieve_quizzes()
+    return quizzes
+
+# Get a quiz by ID
+@app.get("/quiz/{id}")
+async def get_quiz(id: str):
+    quiz = await retrieve_quiz(id)
+    if quiz:
+        return quiz
+    raise HTTPException(status_code=404, detail=f"Quiz {id} not found")
 
 
 if __name__ == "__main__":
