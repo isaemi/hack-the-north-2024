@@ -7,24 +7,18 @@ function Timer() {
     const intervalRef = useRef(null); // Holds the interval ID
 
     const startTimer = () => {
-        let startTime = null;
-        let endTime = null;
-        try {
-            startTime = window.localStorage.getItem('startTime');
-            endTime = window.localStorage.getItem('endTime');
+        let startTime = window.localStorage.getItem('startTime');
+        let endTime = window.localStorage.getItem('endTime');
 
-            if (!startTime || !endTime || Date.now() > endTime) {
-                startTime = Date.now();
-                endTime = startTime + 600000;
-                window.localStorage.setItem('startTime', startTime);
-                window.localStorage.setItem('endTime', endTime);
-            }
-
-            setEndTime(endTime);
-            setStartTime(startTime);
-        } catch (error) {
-            console.error('Error fetching or saving time from storage:', error);
+        if (!startTime || !endTime || Date.now() > endTime) {
+            startTime = Date.now();
+            endTime = startTime + 600000;
+            window.localStorage.setItem('startTime', startTime);
+            window.localStorage.setItem('endTime', endTime);
         }
+
+        setEndTime(endTime);
+        setStartTime(startTime);
     }
 
     const stopTimer = () => {
@@ -65,7 +59,7 @@ function Timer() {
         }
 
         return () => clearInterval(interval);
-    }, [startTime]);
+    }, [startTime, endTime]);
 
     useEffect(() => {
         startTimer();
