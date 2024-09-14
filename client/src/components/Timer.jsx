@@ -159,7 +159,7 @@ function PomodoroTimer() {
           </div> */}
 
           <div className="setting-item">
-            <label>Work Duration (Minutes:Seconds):</label>
+            <label>Work Duration:</label>
             <div>
               <input
                 type="number"
@@ -181,7 +181,7 @@ function PomodoroTimer() {
           </div>
 
           <div className="setting-item">
-            <label>Break Duration (Minutes:Seconds):</label>
+            <label>Break Duration:</label>
             <div>
               <input
                 type="number"
