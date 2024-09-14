@@ -21,7 +21,7 @@ def summarize_webpage(url, language='English'):
         preamble="Summarize this content in the preferred language. Format it in bullet point.",
     )
 
-    return response.json()
+    return response.text
 
 # Example usage:
 url = "https://ggbaker.ca/data-science/content/etl.html"  # Replace with any URL
