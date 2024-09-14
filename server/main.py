@@ -42,10 +42,23 @@ async def summarize_endpoint(url: str, language="en"):
     response = co.chat(
         message=f"The preferred language is {language}. This is the content: {url}",
         model="command-r-plus",
-        preamble="Write key points of this content as bullet points in the preferred language. Keep it concise and short.",
+        preamble="Write key points of this content as bullet points in the preferred language. Keep it concise and short. Return in JSON format",
+        response_format={
+            "type": "json_object",
+            "schema": {
+                "type": "object",
+                "required": ["summary"],
+                "properties": {
+                    "summary": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                    },
+                },
+            },
+        },
     )
 
-    return response.text
+    return json.loads(response.text)
 
 
 @app.post("/quiz")
