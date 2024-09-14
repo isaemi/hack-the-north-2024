@@ -41,21 +41,22 @@ function Timer() {
 
         return `${formattedMinutes}:${formattedSeconds}`;
     };
+    const setTimeElapsedForUI = () => {
+        const remainingTime = Math.floor((endTime - Date.now()) / 1000);
+
+        if (remainingTime <= 0) {
+            clearInterval(intervalRef.current); // Stop the interval if the time has passed
+            setTimeElapsed(0); // Optionally set timeElapsed to 0 if the time is up
+        } else {
+            setTimeElapsed(remainingTime);
+        }
+    }
 
     useEffect(() => {
         let interval = null;
-
-        if (startTime) {
-            intervalRef.current = setInterval(() => {
-                const remainingTime = Math.floor((endTime - Date.now()) / 1000);
-
-                if (remainingTime <= 0) {
-                    clearInterval(intervalRef.current); // Stop the interval if the time has passed
-                    setTimeElapsed(0); // Optionally set timeElapsed to 0 if the time is up
-                } else {
-                    setTimeElapsed(remainingTime);
-                }
-            }, 1000);
+        setTimeElapsedForUI();
+        if (endTime) {
+            intervalRef.current = setInterval(setTimeElapsedForUI, 1000);
         }
 
         return () => clearInterval(interval);
