@@ -7,28 +7,29 @@ function App() {
   const [startTime, setStartTime] = useState(null);
   const [timeElapsed, setTimeElapsed] = useState(0);
 
-  function startTimer() {
+  const startTimer = async () => {
     let startTime = null;
     let endTime = null;
-    chrome.storage.local.get(['startTime', 'endTime'], function (result) {
-      const startTimeResult = result.startTime;
-      const endTimeResult = result.endTime;
+    try {
+      const result = await chrome.storage.local.get(['startTime', 'endTime']);
 
-      console.log('Start Time:', startTime);
-      console.log('End Time:', endTime);
+      startTime = result.startTime;
+      endTime = result.endTime;
 
-      startTime = startTimeResult;
-      endTime = endTimeResult;
-    });
+      if (!startTime || !endTime) {
+        startTime = Date.now();
+        endTime = startTime + 600000;
+        await chrome.storage.local.set({ startTime, endTime });
+      }
 
-    if (!startTime || !endTime) {
-      startTime = Date.now();
-      endTime = startTime + 600000;
-      chrome.storage.local.set({ startTime, endTime });
+      console.log('Start Time and End Time saved!');
+
+      // Update the states
+      setEndTime(endTime);
+      setStartTime(startTime);
+    } catch (error) {
+      console.error('Error fetching or saving time from storage:', error);
     }
-
-    setEndTime(endTime);
-    setStartTime(startTime);
   }
 
   function stopTimer() {
@@ -48,7 +49,7 @@ function App() {
 
   const formatTime = (elapsedTime) => {
     if (!elapsedTime) {
-      return "N/A";
+      return "...";
     }
     const minutes = Math.floor(elapsedTime / 60);
     const seconds = elapsedTime % 60;
@@ -59,21 +60,6 @@ function App() {
 
     return `${formattedMinutes}:${formattedSeconds}`;
   };
-
-  // useEffect(() => {
-  //   // Initialize the interval
-  //   const intervalId = setInterval(() => {
-  //     setStartTime((startTime) => {
-  //       if (!startTime || startTime ) {
-  //         clearInterval(intervalId);
-  //         return 0;
-  //       }
-  //       return prevSeconds - 1;
-  //     });
-  //   }, 1000);
-
-  //   return () => clearInterval(intervalId);
-  // }, []);
 
   useEffect(() => {
     let interval = null;
