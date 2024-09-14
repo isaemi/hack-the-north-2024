@@ -6,7 +6,10 @@ from pydantic import BaseModel
 from typing import Generator
 from CohereContext import CohereContext, CohereMessage  # Import CohereMessage as well
 from dotenv import load_dotenv
+import cohere
+import os
 
+# Load environment variables from the .env file (if present)
 load_dotenv()
 
 app = FastAPI()
@@ -24,43 +27,40 @@ API_KEY = os.getenv("COHERE_API_KEY")
 if not API_KEY:
     raise EnvironmentError("COHERE_KEY environment variable not set")
 
-# Initialize CohereContext
-cohere_context = CohereContext("command-r-plus", API_KEY)
-
-class Prompt(BaseModel):
-    text: str
-    role: str = "USER"  # Default role is USER, but can be overridden
-
-def token_generator(prompt: Prompt) -> Generator[str, None, None]:
-    cohere_context.Prompt(CohereMessage(prompt.role, prompt.text))
-    for token in cohere_context.Run(stream=True):
-        if token:
-            print(token, end="", flush=True)
-
-        yield f"data: {token}\n\n"
-    yield "data: [DONE]\n\n"
-
+# Initialize the Cohere client with your API key
+co = cohere.Client(os.getenv("COHERE_API_KEY"))
 
 @app.get("/")
 async def get_default():
     return "Studylingo API", 200
 
-@app.post("/prompt")
-async def prompt_endpoint(prompt: Prompt):
-    if not prompt.text:
-        raise HTTPException(status_code=400, detail="Prompt text cannot be empty")
-
-    return StreamingResponse(token_generator(prompt), media_type="text/event-stream")
-
 @app.post("/summarize")
-async def summarize_endpoint(url: str, language="English"):
+async def summarize_endpoint(url: str, language="en"):
+    if not url:
+        raise HTTPException(status_code=400, detail="URL cannot be empty")
+ 
+    response = co.chat(
+        message=f"The preferred language is {language}. This is the content: {url}",
+        model="command-r-plus",
+        preamble="Write key points of this content as bullet points in the preferred language. Keep it concise and short.",
+    )
+    
+    return response.text
+
+@app.post("/quiz")
+def quiz_endpoint(url: str, language="en", amount=1):
     if not url:
         raise HTTPException(status_code=400, detail="URL cannot be empty")
     
-    prompt = f"Write a short summary of this content as bullet points in the preferred language. The preferred language is {language}. This is the content: {url}. Do not return anything else aside bullet points."
-    
-    return StreamingResponse(token_generator(Prompt(text=prompt)), media_type="text/event-stream")
+    prompt = Prompt(text= f"Return a {amount} of quizzes from the content: {url}. The preferred language is {language}. Return in JSON format")
 
+    response = co.chat(
+        model="command-r-plus",
+        message=f"Return a {amount} of quizzes from the content: {url}. The preferred language is {language}. Return in JSON format",
+        response_format={ "type": "json_object" }
+    )
+
+    return response.text
 
 if __name__ == "__main__":
     import uvicorn
