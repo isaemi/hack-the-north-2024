@@ -15,7 +15,7 @@ function Timer() {
             startTime = result.startTime;
             endTime = result.endTime;
 
-            if (!startTime || !endTime) {
+            if (!startTime || !endTime || Date.now() > endTime) {
                 startTime = Date.now();
                 endTime = startTime + 600000;
                 await chrome.storage.local.set({ startTime, endTime });
@@ -58,7 +58,7 @@ function Timer() {
                 const remainingTime = Math.floor((endTime - Date.now()) / 1000);
 
                 if (remainingTime <= 0) {
-                    clearInterval(interval); // Stop the interval if the time has passed
+                    clearInterval(intervalRef.current); // Stop the interval if the time has passed
                     setTimeElapsed(0); // Optionally set timeElapsed to 0 if the time is up
                 } else {
                     setTimeElapsed(remainingTime);
