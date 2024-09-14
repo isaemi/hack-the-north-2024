@@ -13,7 +13,6 @@ function PomodoroTimer() {
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isStarted, setIsStarted] = useState(false); // New state to manage whether the settings or timer is shown
-  const [mode, setMode] = useState(''); // Mode input
   const intervalRef = useRef(null);
   const [endTime, setEndTime] = useState(null);
 
@@ -48,16 +47,10 @@ function PomodoroTimer() {
   };
 
   // Start the timer
-  const startTimer = (overridedMode, overridedEndTime, overridedTimeElapse) => {
-    if (!mode && !overridedMode) {
-      alert('Please enter a mode for the session');
-      return;
-    }
-
+  const startTimer = (overridedEndTime, overridedTimeElapse) => {
     setIsRunning(true);
     setIsPaused(false);
     setIsStarted(true); // Hide settings and show timer
-    saveToLocalStorage('mode', overridedMode || mode);
     saveToLocalStorage('endTime', overridedEndTime || Date.now() + getTotalSeconds(workMinutes, workSeconds) * 1000);
     saveToLocalStorage('playState', 'running')
 
@@ -137,15 +130,13 @@ function PomodoroTimer() {
   }, [workMinutes, workSeconds]);
 
   useEffect(() => {
-    const modeFromStorage = loadFromLocalStorage('mode', null);
     const endTimeFromStorage = loadFromLocalStorage('endTime', null);
     const elapsedTimeFromStorage = loadFromLocalStorage('timeElapsed', null);
     const playStateFromStorage = loadFromLocalStorage('playState', null);
-    setMode(modeFromStorage);
     setEndTime(endTimeFromStorage);
     setTimeElapsed(elapsedTimeFromStorage);
-    if (modeFromStorage && endTimeFromStorage && elapsedTimeFromStorage && playStateFromStorage === 'running') {
-      startTimer(modeFromStorage, endTimeFromStorage, elapsedTimeFromStorage);
+    if (endTimeFromStorage && elapsedTimeFromStorage && playStateFromStorage === 'running') {
+      startTimer(endTimeFromStorage, elapsedTimeFromStorage);
     }
   }, []);
 
