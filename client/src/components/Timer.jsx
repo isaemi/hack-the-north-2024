@@ -6,19 +6,18 @@ function Timer() {
     const [timeElapsed, setTimeElapsed] = useState(null);
     const intervalRef = useRef(null); // Holds the interval ID
 
-    const startTimer = async () => {
+    const startTimer = () => {
         let startTime = null;
         let endTime = null;
         try {
-            const result = await chrome.storage.local.get(['startTime', 'endTime']);
-
-            startTime = result.startTime;
-            endTime = result.endTime;
+            startTime = window.localStorage.getItem('startTime');
+            endTime = window.localStorage.getItem('endTime');
 
             if (!startTime || !endTime || Date.now() > endTime) {
                 startTime = Date.now();
                 endTime = startTime + 600000;
-                await chrome.storage.local.set({ startTime, endTime });
+                window.localStorage.setItem('startTime', startTime);
+                window.localStorage.setItem('endTime', endTime);
             }
 
             setEndTime(endTime);
@@ -28,10 +27,9 @@ function Timer() {
         }
     }
 
-    const stopTimer = async () => {
-        await chrome.storage.local.remove(['startTime', 'endTime'], function (result) {
-            console.log("Timer stopped!")
-        });
+    const stopTimer = () => {
+        window.localStorage.removeItem('startTime');
+        window.localStorage.removeItem('endTime');
         setTimeElapsed(0);
         clearInterval(intervalRef.current);
     }
@@ -77,7 +75,7 @@ function Timer() {
         <div className="section">
             <h2>Timer</h2>
             <h1>{formatTime(timeElapsed)}</h1>
-            <div class="flex">
+            <div>
                 <button onClick={startTimer} disabled={timeElapsed !== 0}>Start Timer</button>
                 <button onClick={stopTimer} disabled={timeElapsed === 0}>Stop Timer</button>
             </div>
