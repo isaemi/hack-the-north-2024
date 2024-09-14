@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import cohere
 import json
+from crud import add_quiz, retrieve_quiz, retrieve_quizzes
+from model import Quiz
 
 # Load environment variables from the .env file (if present)
 load_dotenv()
@@ -47,7 +49,7 @@ async def summarize_endpoint(url: str, language="en"):
 
 
 @app.post("/quiz")
-def quiz_endpoint(url: str, language="en", amount=1):
+async def quiz_endpoint(url: str, language="en", amount=1):
     if not url:
         raise HTTPException(status_code=400, detail="URL cannot be empty")
 
@@ -87,7 +89,30 @@ def quiz_endpoint(url: str, language="en", amount=1):
         },
     )
 
-    return json.loads(response.text)
+    # Parse the response
+    quiz_data = json.loads(response.text)
+    
+    if "quiz" not in quiz_data:
+        raise HTTPException(status_code=500, detail="Invalid response format")
+
+    # Store the quiz in MongoDB
+    quiz = await add_quiz(Quiz(quiz=quiz_data["quiz"]))
+    
+    return {"quiz_id": quiz["id"]}
+
+# Get all quizzes
+@app.get("/quizzes/")
+async def get_quizzes():
+    quizzes = await retrieve_quizzes()
+    return quizzes
+
+# Get a quiz by ID
+@app.get("/quiz/{id}")
+async def get_quiz(id: str):
+    quiz = await retrieve_quiz(id)
+    if quiz:
+        return quiz
+    raise HTTPException(status_code=404, detail=f"Quiz {id} not found")
 
 
 if __name__ == "__main__":
