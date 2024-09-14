@@ -50,12 +50,12 @@ async def prompt_endpoint(prompt: Prompt):
 
 @app.post("/summarize")
 async def summarize_endpoint(url: str, language="English"):
-    if not url.text:
+    if not url:
         raise HTTPException(status_code=400, detail="URL cannot be empty")
     
-    prompt = f"Write key points of this content as bullet points in the preferred language. Keep it concise and short. The preferred language is {language}. This is the content: {url}"
+    prompt = f"Write a short summary of this content as bullet points in the preferred language. The preferred language is {language}. This is the content: {url}. Do not return anything else aside bullet points."
     
-    return StreamingResponse(token_generator(prompt), media_type="text/event-stream")
+    return StreamingResponse(token_generator(Prompt(text=prompt)), media_type="text/event-stream")
 
 
 if __name__ == "__main__":
