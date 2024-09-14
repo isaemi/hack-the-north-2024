@@ -134,15 +134,15 @@ function PomodoroTimer() {
       {isStarted ? (
         // Show timer only when started
         <div className="timer-display">
-          <h1>{formatTime(timeElapsed)}</h1>
+          <h1 style={{ fontSize: '4rem' }}>{formatTime(timeElapsed)}</h1>
           <div className="buttons">
             {isRunning && (
-              <button onClick={pauseTimer}>Pause</button>
+              <button onClick={pauseTimer}>PAUSE</button>
             )}
             {isPaused && (
-              <button onClick={resumeTimer}>Resume</button>
+              <button onClick={resumeTimer}>RESUME</button>
             )}
-            <button onClick={resetTimer}>Reset</button>
+            <button onClick={resetTimer}>RESET</button>
           </div>
         </div>
       ) : (
@@ -214,7 +214,7 @@ function PomodoroTimer() {
           </div>
 
           <div className="buttons">
-            <button onClick={startTimer}>Start</button>
+            <button onClick={startTimer}>START</button>
           </div>
         </div>
       )}
