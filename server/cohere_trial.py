@@ -5,10 +5,6 @@ import os
 # Load environment variables from the .env file (if present)
 load_dotenv()
 
-import cohere
-import requests
-from bs4 import BeautifulSoup
-
 # Initialize the Cohere client with your API key
 co = cohere.Client(os.getenv("COHERE_API_KEY"))
 
