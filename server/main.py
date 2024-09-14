@@ -27,11 +27,9 @@ if not API_KEY:
 # Initialize CohereContext
 cohere_context = CohereContext("command-r-plus", API_KEY)
 
-
 class Prompt(BaseModel):
     text: str
     role: str = "USER"  # Default role is USER, but can be overridden
-
 
 def token_generator(prompt: Prompt) -> Generator[str, None, None]:
     cohere_context.Prompt(CohereMessage(prompt.role, prompt.text))
@@ -50,7 +48,14 @@ async def prompt_endpoint(prompt: Prompt):
 
     return StreamingResponse(token_generator(prompt), media_type="text/event-stream")
 
-
+@app.post("/summarize")
+async def summarize_endpoint(url: str, language="English"):
+    if not url.text:
+        raise HTTPException(status_code=400, detail="URL cannot be empty")
+    
+    prompt = f"Write key points of this content as bullet points in the preferred language. Keep it concise and short. The preferred language is {language}. This is the content: {url}"
+    
+    return StreamingResponse(token_generator(prompt), media_type="text/event-stream")
 
 
 if __name__ == "__main__":

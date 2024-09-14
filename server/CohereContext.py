@@ -2,7 +2,6 @@ import cohere
 from tinytune.llmcontext import LLMContext, Model, Message
 from typing import Any, Generator
 
-
 class CohereMessage(Message):
     __slots__ = ("Role", "Text")
 
