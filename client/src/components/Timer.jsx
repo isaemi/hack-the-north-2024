@@ -1,129 +1,71 @@
 import { useState, useEffect, useRef } from 'react';
 
-function PomodoroTimer() {
-  const [workMinutes, setWorkMinutes] = useState(25); // Default to 25 minutes
-  const [workSeconds, setWorkSeconds] = useState(0); // Default to 0 seconds
-  const [breakMinutes, setBreakMinutes] = useState(5); // Default to 5 minutes
-  const [breakSeconds, setBreakSeconds] = useState(0); // Default to 0 seconds
-  const [cycles, setCycles] = useState(4); // Default to 4 cycles
-  const [currentCycle, setCurrentCycle] = useState(1);
-  const [timeElapsed, setTimeElapsed] = useState(0);
-  const [isBreak, setIsBreak] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [mode, setMode] = useState(''); // Mode input
-  const intervalRef = useRef(null);
+function Timer() {
+    const [endTime, setEndTime] = useState(null);
+    const [startTime, setStartTime] = useState(null);
+    const [timeElapsed, setTimeElapsed] = useState(null);
+    const intervalRef = useRef(null); // Holds the interval ID
 
-  // Convert minutes and seconds to total seconds
-  const getTotalSeconds = (minutes, seconds) => minutes * 60 + seconds;
+    const startTimer = () => {
+        let startTime = null;
+        let endTime = null;
+        try {
+            startTime = window.localStorage.getItem('startTime');
+            endTime = window.localStorage.getItem('endTime');
 
-  // Format time for display
-  const formatTime = (elapsedTime) => {
-    const minutes = Math.floor(elapsedTime / 60);
-    const seconds = elapsedTime % 60;
-    return `${String(minutes)}:${String(seconds).padStart(2, '0')}`;
-  };
+            if (!startTime || !endTime || Date.now() > endTime) {
+                startTime = Date.now();
+                endTime = startTime + 600000;
+                window.localStorage.setItem('startTime', startTime);
+                window.localStorage.setItem('endTime', endTime);
+            }
 
-  // Save to localStorage with error handling
-  const saveToLocalStorage = (key, value) => {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch (error) {
-      console.error("Failed to save to localStorage", error);
-    }
-  };
-
-  // Load from localStorage with error handling
-  const loadFromLocalStorage = (key, defaultValue) => {
-    try {
-      const savedValue = localStorage.getItem(key);
-      return savedValue ? JSON.parse(savedValue) : defaultValue;
-    } catch (error) {
-      console.error("Failed to load from localStorage", error);
-      return defaultValue;
-    }
-  };
-
-  // Start the timer
-  const startTimer = () => {
-    if (!mode) {
-      alert('Please enter a mode for the session');
-      return;
-    }
-
-    setIsRunning(true);
-    setIsPaused(false);
-    saveToLocalStorage('mode', mode);
-
-    intervalRef.current = setInterval(() => {
-      setTimeElapsed((prev) => {
-        if (prev <= 0) {
-          clearInterval(intervalRef.current);
-          if (currentCycle < cycles) {
-            setIsBreak(!isBreak);
-            setCurrentCycle((prevCycle) => prevCycle + (isBreak ? 0 : 1));
-            return isBreak
-              ? getTotalSeconds(workMinutes, workSeconds)
-              : getTotalSeconds(breakMinutes, breakSeconds);
-          } else {
-            stopTimer(); // Stop after all cycles are completed
-          }
+            setEndTime(endTime);
+            setStartTime(startTime);
+        } catch (error) {
+            console.error('Error fetching or saving time from storage:', error);
         }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
-  // Pause the timer
-  const pauseTimer = () => {
-    clearInterval(intervalRef.current);
-    setIsPaused(true);
-    setIsRunning(false);
-    saveToLocalStorage('timeElapsed', timeElapsed);
-  };
-
-  // Resume the timer
-  const resumeTimer = () => {
-    setIsPaused(false);
-    setIsRunning(true);
-    startTimer();
-  };
-
-  // Reset the timer
-  const resetTimer = () => {
-    clearInterval(intervalRef.current);
-    setIsRunning(false);
-    setIsPaused(false);
-    setTimeElapsed(getTotalSeconds(workMinutes, workSeconds));
-    setCurrentCycle(1);
-    setIsBreak(false);
-    localStorage.clear(); // Clear all stored data on reset
-  };
-
-  // Handle input changes for minutes and seconds
-  const handleMinutesChange = (e, setMinutes) => {
-    const value = e.target.value;
-    if (value < 0) {
-      setMinutes(0); // Prevent negative values
-    } else {
-      setMinutes(value);
     }
-  };
 
-  const handleSecondsChange = (e, setSeconds) => {
-    const value = e.target.value;
-    if (value < 0) {
-      setSeconds(0); // Prevent negative values
-    } else if (value >= 60) {
-      setSeconds(59); // Cap seconds at 59
-    } else {
-      setSeconds(value);
+    const stopTimer = () => {
+        window.localStorage.removeItem('startTime');
+        window.localStorage.removeItem('endTime');
+        setTimeElapsed(0);
+        clearInterval(intervalRef.current);
     }
-  };
 
-  useEffect(() => {
-    setTimeElapsed(getTotalSeconds(workMinutes, workSeconds));
-  }, [workMinutes, workSeconds]);
+    const formatTime = (elapsedTime) => {
+        if (elapsedTime === null) {
+            return "...";
+        }
+        const minutes = Math.floor(elapsedTime / 60);
+        const seconds = elapsedTime % 60;
+
+        // Format minutes and seconds with leading zeroes if needed
+        const formattedMinutes = String(minutes).padStart(2, '0');
+        const formattedSeconds = String(seconds).padStart(2, '0');
+
+        return `${formattedMinutes}:${formattedSeconds}`;
+    };
+
+    useEffect(() => {
+        let interval = null;
+
+        if (startTime) {
+            intervalRef.current = setInterval(() => {
+                const remainingTime = Math.floor((endTime - Date.now()) / 1000);
+
+                if (remainingTime <= 0) {
+                    clearInterval(intervalRef.current); // Stop the interval if the time has passed
+                    setTimeElapsed(0); // Optionally set timeElapsed to 0 if the time is up
+                } else {
+                    setTimeElapsed(remainingTime);
+                }
+            }, 1000);
+        }
+
+        return () => clearInterval(interval);
+    }, [startTime]);
 
   useEffect(() => {
     saveToLocalStorage('timeElapsed', timeElapsed);
