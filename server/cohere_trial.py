@@ -14,7 +14,7 @@ def summarize_webpage(url, language='English'):
     response = co.chat(
         message=f"The preferred language is {language}. This is the content: {url}",
         model="command-r-plus",
-        preamble="Write key points of this content as bullet points in the preferred language.",
+        preamble="Write key points of this content as bullet points in the preferred language. Keep it concise and short.",
     )
 
     return response.text
