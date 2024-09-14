@@ -129,7 +129,7 @@ function PomodoroTimer() {
 
   return (
     <div className="pomodoro-container">
-      <h2>Pomodoro Timer</h2>
+      <h2>TIMER</h2>
 
       {isStarted ? (
         // Show timer only when started
