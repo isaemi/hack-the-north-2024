@@ -125,3 +125,6 @@ button {
   cursor: not-allowed;
 }
 
+.pomodoro-container {
+  background-color: #FACDDE;
+}

@@ -8,9 +8,10 @@ load_dotenv()
 # Initialize the Cohere client with your API key
 co = cohere.Client(os.getenv("COHERE_API_KEY"))
 
-def summarize_webpage(url, language='English'):
+
+def summarize_webpage(url, language="English"):
     """Fetches and summarizes the content of a webpage in the preferred language."""
-    
+
     response = co.chat(
         message=f"The preferred language is {language}. This is the content: {url}",
         model="command-r-plus",
@@ -18,6 +19,7 @@ def summarize_webpage(url, language='English'):
     )
 
     return response.text
+
 
 # Example usage:
 url = "https://ggbaker.ca/data-science/content/etl.html"  # Replace with any URL
