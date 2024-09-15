@@ -19,19 +19,21 @@ img{
     position: absolute;
 }
 .title{
-    font-size: 60px;
+    font-size: 50px;
     color: white;
-    text-align: center;
+    text-align: center; 
 }
-.button, .button:active{
+.button{
     font-size: 30px;
     color: white;
     border: 3px solid white;
     border-radius: 4rem;
-    padding: 10px 20px;
+    padding: 10px 40px;
     margin-top: 0;
     display: inline-block;
+    text-decoration: none; 
 }
+
 .button:hover{
     background-color: white;
     box-shadow: 10 20 10 white;
@@ -56,6 +58,7 @@ img{
 .windowset{
     display: flex;
     justify-content: center;
+    
     flex-direction: row;
 }
 @keyframes animate {
@@ -73,16 +76,17 @@ img{
 .window1{
     width: 450px;
     left: 65%;
-    margin-top: 7%;
+    margin-top: 8%;
 }
 .window2{
     width: 700px;
     z-index: -1;
+    margin-top: 3%;
 }
 .window3{
     width: 450px;
     left: 8%;
-    margin-top: 7%;
+    margin-top: 8%;
 }
 
 @media (max-width: 1700){
