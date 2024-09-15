@@ -31,7 +31,7 @@ function App() {
               Start Quiz
             </button>
             <img src={bringo} alt="Bringo Mascot" width="80px" style={{
-              position: 'fixed',
+              position: 'fixedgit ',
               right: '10px',
               bottom: '1px'
             }}/>
