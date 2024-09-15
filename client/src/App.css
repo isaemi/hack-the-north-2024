@@ -2,13 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  /* height: 40vmin; */
-  pointer-events: none;
+html, body {
+  color: #764F93;
 }
 
 .subtitle {
@@ -61,11 +56,15 @@ button {
   border: 3px solid #f5bcc9; /* Inner border */
 }
 
-
+li {
+  list-style-type: disc; 
+  list-style-position: inside;
+}
 .timer-display h1 {
   font-size: 2.5rem; /* Larger font size */
-  margin: 10px 0;
+  margin: 10px auto;
   color: #3c2453; /* Dark purple color */
+  text-align: center;
 }
 
 .settings {
@@ -120,9 +119,9 @@ button {
 }
 
 .buttons button {
-  padding: 10px 10px;
+  padding: 5px;
   margin: 5px;
-  font-size: 1.2rem; 
+  font-size: 1rem; 
   border: 2px solid white;
   border-radius: 12px;
   background-color: transparent; /* Transparent background */

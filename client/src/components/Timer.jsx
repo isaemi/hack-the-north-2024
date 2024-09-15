@@ -146,12 +146,14 @@ function Timer() {
     <div className="container">
       <h2 className="subtitle">Pomodoro Timer</h2>
       <div className="timer-display">
-        <h1 style={{ fontSize: '4rem' }}>{formatTime(timeRemaining)}</h1>
-        <div className="buttons">
-          {!hasStarted && <button onClick={startTimer}>START</button>}
-          {hasStarted && isRunning && <button onClick={pauseTimer}>PAUSE</button>}
-          {hasStarted && !isRunning && <button onClick={resumeTimer}>RESUME</button>}
-          {hasStarted && <button onClick={resetTimer}>RESET</button>}
+        <div className="flex flex-row items-center content-center gap-px">
+          <h1 style={{ fontSize: '4rem' }}>{formatTime(timeRemaining)}</h1>
+          <div className="buttons flex flex-col">
+            {!hasStarted && <button onClick={startTimer}>START</button>}
+            {hasStarted && isRunning && <button onClick={pauseTimer}>PAUSE</button>}
+            {hasStarted && !isRunning && <button onClick={resumeTimer}>RESUME</button>}
+            {hasStarted && <button onClick={resetTimer}>RESET</button>}
+          </div>
         </div>
       </div>
     </div>

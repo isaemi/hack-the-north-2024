@@ -4,6 +4,7 @@ import Timer from "./components/Timer";
 import Summary from "./components/Summary";
 import "./App.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import bringo from "./assets/bringo.png"
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,11 @@ function App() {
             >
               Start Quiz
             </button>
+            <img src={bringo} alt="Bringo Mascot" width="80px" style={{
+              position: 'fixed',
+              right: '10px',
+              bottom: '1px'
+            }}/>
           </div>
         </div>
       </main>
