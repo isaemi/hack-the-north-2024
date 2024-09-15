@@ -6,6 +6,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import "./quiz.css";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ function Quiz() {
 
   return (
     <div className="quiz-container">
+      <h1>QUIZ</h1>
       {isLoading && <p>Loading summary...</p>}
       {error && <p>This website is unreachable.</p>}
       {data &&
