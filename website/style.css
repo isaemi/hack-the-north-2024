@@ -60,13 +60,13 @@ img{
 }
 @keyframes animate {
     0% {
-        margin-top: 6%;
+        margin-top: 10%;
     }
     50% {
-        margin-top: 8%;
+        margin-top: 12%;
     }
     100% {
-        margin-top: 6%;
+        margin-top: 610%;
     }
 }
 
@@ -113,11 +113,15 @@ img{
         left: 30%;
     }
 }
-
+@media (max-width: 900px){
+    .bringo{
+        left: 25%;
+        margin-left: 0;
+    }
+}
 @media (max-width: 800px) {
     .bringo {
         left: 20%;
-        margin-left: 0;
     }
 }
 
