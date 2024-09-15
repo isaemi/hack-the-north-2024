@@ -96,7 +96,7 @@ function Quiz() {
             )}
           </div>
         ))}
-      <button onClick={handleSubmit}>Submit</button>
+      {data && <button onClick={handleSubmit}>Submit</button>}
     </div>
   );
 }
