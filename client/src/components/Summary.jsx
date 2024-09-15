@@ -45,7 +45,7 @@ export default function Summary() {
   return (
     <div className="container">
       <h2 className="subtitle">Summary</h2>
-      {isLoading && <p>Loading summary...</p>}
+      {isLoading && <iframe src="https://giphy.com/embed/3oEjI6SIIHBdRxXI40" width="480" height="480" style="" frameBorder="0" class="giphy-embed" allowFullScreen></iframe>}
       {error && <p>This website is unreachable.</p>}
       {data && (
         <ul className="text-left">
