@@ -43,12 +43,12 @@ export default function Summary() {
   const { data, error, isLoading } = useSummary(url);
 
   return (
-    <div className="summary-container">
-      <h1>Summary</h1>
+    <div className="container">
+      <h2 className="subtitle">Summary</h2>
       {isLoading && <p>Loading summary...</p>}
       {error && <p>This website is unreachable.</p>}
       {data && (
-        <ul>
+        <ul className="text-left">
           {data.summary.map((line, index) => (
             <li key={index}>{line}</li>
           ))}

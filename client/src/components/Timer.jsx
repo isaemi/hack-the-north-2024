@@ -1,238 +1,161 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react'
 
-function PomodoroTimer() {
-  const [workMinutes, setWorkMinutes] = useState(25); // Default to 25 minutes
-  const [workSeconds, setWorkSeconds] = useState(0); // Default to 0 seconds
-  const [breakMinutes, setBreakMinutes] = useState(5); // Default to 5 minutes
-  const [breakSeconds, setBreakSeconds] = useState(0); // Default to 0 seconds
-
-  const [cycles, setCycles] = useState(4); // Default to 4 cycles
-  const [currentCycle, setCurrentCycle] = useState(1);
-  const [timeElapsed, setTimeElapsed] = useState(0);
-  const [isBreak, setIsBreak] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isStarted, setIsStarted] = useState(false); // New state to manage whether the settings or timer is shown
-  const intervalRef = useRef(null);
+// state
+// timeRemaining - in s
+// endTime - in ms
+// isRunning - true if not paused
+// hasStarted - true 
+// isBreak
+function Timer() {
+  const [timeRemaining, setTimeRemaining] = useState(null);
   const [endTime, setEndTime] = useState(null);
+  const [isRunning, setIsRunning] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [isBreak, setIsBreak] = useState(false);
+  const intervalRef = useRef(null); // Holds the interval ID
+  const defaultWorkTime = 25 * 60; // 25 mins
+  const defaultBreakTime = 5 * 60 // 5 mins
 
-  // Convert minutes and seconds to total seconds
-  const getTotalSeconds = (minutes, seconds) => minutes * 60 + seconds;
+  const startTimer = (overridenEndTime) => {
+    setHasStarted(true);
+    setIsRunning(true);
+    setIsBreak(prev => !prev);
+    const t = loadTimerSettings();
+    const finalEndTime = overridenEndTime || t.endTime || (Date.now() + isBreak ? defaultWorkTime : defaultBreakTime);
+    setEndTime(finalEndTime);
+  }
 
-  // Format time for display
-  const formatTime = (elapsedTime) => {
-    const minutes = Math.floor(elapsedTime / 60);
-    const seconds = elapsedTime % 60;
-    return `${String(minutes)}:${String(seconds).padStart(2, '0')}`;
+  const pauseTimer = () => {
+    clearInterval(intervalRef.current);
+    setTimeRemaining(timeRemaining);
+    setIsRunning(false);
+    syncAllStatesToTimerSettings();
   };
 
-  // Save to localStorage with error handling
-  const saveToLocalStorage = (key, value) => {
+  const resumeTimer = () => {
+    setIsRunning(true);
+    let overridenEndTime = Date.now() + loadTimerSettings().timeRemaining;
+    startTimer(overridenEndTime);
+    syncAllStatesToTimerSettings();
+  };
+
+  const resetTimer = () => {
+    clearInterval(intervalRef.current);
+    setIsRunning(false);
+    setHasStarted(false);
+    setTimeRemaining(isBreak ? defaultBreakTime : defaultWorkTime); // back to prev
+    syncAllStatesToTimerSettings();
+  };
+
+  const formatTime = (elapsedTime) => {
+    if (elapsedTime === null) {
+      return "...";
+    }
+    const minutes = Math.floor(elapsedTime / 60);
+    const seconds = elapsedTime % 60;
+
+    // Format minutes and seconds with leading zeroes if needed
+    const formattedMinutes = String(minutes).padStart(2, '0');
+    const formattedSeconds = String(seconds).padStart(2, '0');
+
+    return `${formattedMinutes}:${formattedSeconds}`;
+  };
+
+  const setTimeElapsedForUI = () => {
+    if (!isRunning) {
+      return;
+    }
+
+    setTimeRemaining(prev => {
+      if (prev <= 0) {
+        clearInterval(intervalRef.current); // Stop the interval if the time has passed
+        setIsRunning(false);
+        syncAllStatesToTimerSettings();
+        return isBreak ? defaultWorkTime : defaultBreakTime;
+      } else {
+        return prev - 1;
+      }
+    })
+
+  }
+
+  useEffect(() => {
+    setTimeElapsedForUI();
+    if (endTime && isRunning) {
+      intervalRef.current = setInterval(setTimeElapsedForUI, 1000);
+    }
+
+    return () => clearInterval(intervalRef.current);
+  }, [endTime]);
+
+  const saveToTimerSettings = (value) => {
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+      const existingTimerSettings = localStorage.getItem("TIMER_SETTINGS");
+      const newTimerSettings = {
+        ...existingTimerSettings,
+        value
+      }
+      localStorage.setItem("TIMER_SETTINGS", JSON.stringify(newTimerSettings));
     } catch (error) {
       console.error("Failed to save to localStorage", error);
     }
   };
 
-  // Load from localStorage with error handling
-  const loadFromLocalStorage = (key, defaultValue) => {
+  const syncAllStatesToTimerSettings = () => {
+    const timerSettings = {
+      timeRemaining,
+      endTime,
+      isRunning,
+      hasStarted,
+      isBreak
+    }
+    localStorage.setItem("TIMER_SETTINGS", JSON.stringify(timerSettings));
+  }
+
+  const loadTimerSettings = () => {
     try {
-      const savedValue = localStorage.getItem(key);
-      return savedValue ? JSON.parse(savedValue) : defaultValue;
+      const savedValue = localStorage.getItem("TIMER_SETTINGS");
+      return savedValue ? JSON.parse(savedValue) : {};
     } catch (error) {
       console.error("Failed to load from localStorage", error);
       return defaultValue;
     }
   };
 
-  // Start the timer
-  const startTimer = (overridedEndTime, overridedTimeElapse) => {
-    setIsRunning(true);
-    setIsPaused(false);
-    setIsStarted(true); // Hide settings and show timer
-    saveToLocalStorage('endTime', overridedEndTime || Date.now() + getTotalSeconds(workMinutes, workSeconds) * 1000);
-    saveToLocalStorage('playState', 'running')
-
-    clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      setTimeElapsed((prev) => {
-        saveToLocalStorage('timeElapsed', prev);
-        if (prev <= 0) {
-          clearInterval(intervalRef.current);
-          if (currentCycle < cycles) {
-            setIsBreak(!isBreak);
-            setCurrentCycle((prevCycle) => prevCycle + (isBreak ? 0 : 1));
-            return isBreak
-              ? getTotalSeconds(workMinutes, workSeconds)
-              : getTotalSeconds(breakMinutes, breakSeconds);
-          } else {
-            stopTimer(); // Stop after all cycles are completed
-            localStorage.clear();
-          }
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
-  // Pause the timer
-  const pauseTimer = () => {
-    clearInterval(intervalRef.current);
-    setIsPaused(true);
-    setIsRunning(false);
-    saveToLocalStorage('playState', 'paused')
-    saveToLocalStorage('timeElapsed', timeElapsed);
-  };
-
-  // Resume the timer
-  const resumeTimer = () => {
-    setIsPaused(false);
-    setIsRunning(true);
+  useEffect(() => {
+    const t = loadTimerSettings();
+    if (t.timeRemaining) {
+      setTimeRemaining(t.timeRemaining);
+    }
+    if (t.hasStarted) {
+      setHasStarted(t.hasStarted);
+    }
+    if (t.isRunning) {
+      setIsRunning(t.isRunning);
+    }
+    if (t.isBreak) {
+      setIsBreak(t.isBreak);
+    }
+    if (t.endTime) {
+      setEndTime(t.endTime);
+    }
     startTimer();
-  };
-
-  // Reset the timer
-  const resetTimer = () => {
-    clearInterval(intervalRef.current);
-    setIsRunning(false);
-    setIsPaused(false);
-    setTimeElapsed(getTotalSeconds(workMinutes, workSeconds));
-    setCurrentCycle(1);
-    setIsBreak(false);
-    setIsStarted(false); // Show settings again on reset
-    localStorage.clear(); // Clear all stored data on reset
-  };
-
-  // Handle input changes for minutes and seconds
-  const handleMinutesChange = (e, setMinutes) => {
-    const value = e.target.value;
-    if (value < 0) {
-      setMinutes(0); // Prevent negative values
-    } else {
-      setMinutes(value);
-    }
-  };
-
-  const handleSecondsChange = (e, setSeconds) => {
-    const value = e.target.value;
-    if (value < 0) {
-      setSeconds(0); // Prevent negative values
-    } else if (value >= 60) {
-      setSeconds(59); // Cap seconds at 59
-    } else {
-      setSeconds(value);
-    }
-  };
-
-  useEffect(() => {
-    setTimeElapsed(getTotalSeconds(workMinutes, workSeconds));
-  }, [workMinutes, workSeconds]);
-
-  useEffect(() => {
-    const endTimeFromStorage = loadFromLocalStorage('endTime', null);
-    const elapsedTimeFromStorage = loadFromLocalStorage('timeElapsed', null);
-    const playStateFromStorage = loadFromLocalStorage('playState', null);
-    setEndTime(endTimeFromStorage);
-    setTimeElapsed(elapsedTimeFromStorage);
-    if (endTimeFromStorage && elapsedTimeFromStorage && playStateFromStorage === 'running') {
-      startTimer(endTimeFromStorage, elapsedTimeFromStorage);
-    }
   }, []);
 
   return (
-    <div className="pomodoro-container">
-      <h2>TIMER</h2>
-
-      {isStarted ? (
-        // Show timer only when started
-        <div className="timer-display">
-          <h1 style={{ fontSize: '4rem' }}>{formatTime(timeElapsed)}</h1>
-          <div className="buttons">
-            {isRunning && (
-              <button onClick={pauseTimer}>PAUSE</button>
-            )}
-            {isPaused && (
-              <button onClick={resumeTimer}>RESUME</button>
-            )}
-            <button onClick={resetTimer}>RESET</button>
-          </div>
+    <div className="container">
+      <h2 className="subtitle">Pomodoro Timer</h2>
+      <div className="timer-display">
+        <h1 style={{ fontSize: '4rem' }}>{formatTime(timeRemaining)}</h1>
+        <div className="buttons">
+          {!hasStarted && <button onClick={startTimer}>START</button>}
+          {hasStarted && isRunning && <button onClick={pauseTimer}>PAUSE</button>}
+          {hasStarted && !isRunning && <button onClick={resumeTimer}>RESUME</button>}
+          {hasStarted && <button onClick={resetTimer}>RESET</button>}
         </div>
-      ) : (
-        <div className="settings">
-          {/* <div className="setting-item">
-            <label>What will you be doing?</label>
-            <input
-              type="text"
-              value={mode}
-              onChange={(e) => setMode(e.target.value)}
-              placeholder="Enter your session activity"
-              disabled={isRunning || isPaused}
-            />
-          </div> */}
-
-          <div className="setting-item">
-            <label>Work Duration:</label>
-            <div>
-              <input
-                type="number"
-                value={workMinutes}
-                onChange={(e) => handleMinutesChange(e, setWorkMinutes)}
-                disabled={isRunning || isPaused}
-                min="0"
-              />
-              <span>:</span>
-              <input
-                type="number"
-                value={workSeconds}
-                onChange={(e) => handleSecondsChange(e, setWorkSeconds)}
-                disabled={isRunning || isPaused}
-                min="0"
-                max="59"
-              />
-            </div>
-          </div>
-
-          <div className="setting-item">
-            <label>Break Duration:</label>
-            <div>
-              <input
-                type="number"
-                value={breakMinutes}
-                onChange={(e) => handleMinutesChange(e, setBreakMinutes)}
-                disabled={isRunning || isPaused}
-                min="0"
-              />
-              <span>:</span>
-              <input
-                type="number"
-                value={breakSeconds}
-                onChange={(e) => handleSecondsChange(e, setBreakSeconds)}
-                disabled={isRunning || isPaused}
-                min="0"
-                max="59"
-              />
-            </div>
-          </div>
-
-          <div className="setting-item">
-            <label>Cycles:</label>
-            <input
-              type="number"
-              value={cycles}
-              onChange={(e) => setCycles(e.target.value)}
-              disabled={isRunning || isPaused}
-              min="1"
-            />
-          </div>
-
-          <div className="buttons">
-            <button onClick={startTimer}>START</button>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
-  );
+  )
 }
 
-export default PomodoroTimer;
+export default Timer;
