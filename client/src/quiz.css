@@ -74,7 +74,7 @@ button:hover {
   background-color: #facdde;
 }
 
-.answer {
+.answer, p{
   font-weight: bolder;
   margin-top: 10px;
   font: 14px;
