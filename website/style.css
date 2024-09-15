@@ -1,23 +1,27 @@
+body{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 #background {
     background-image: url('images/background.png');
     background-size: cover;
     background-repeat: no-repeat;
     width: 100%;
     height: 100vh;
-    margin: 0;
     flex-direction: column; 
     align-items: center; 
     justify-content: center;
     text-align: center;
 }
-#background, img{
-    max-width: 100%;;
+img{
+    position: absolute;
 }
 .title{
-    font-size: 50px;
+    font-size: 60px;
     color: white;
     text-align: center;
-    padding-top: 30px;
 }
 .button{
     font-size: 30px;
@@ -36,19 +40,95 @@
     transition: 0.4s ease-in-out;
 }
 .bringo{
-    float: right;
-    margin-right: 7%;
-    margin-top: 10%;
+    z-index: 3;
+    justify-content: right;
     animation: animate 1s linear infinite;
+    margin-left: 15%;
+    margin-top: 10px;
+}
+.cloud{
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    z-index: 5;
+    transform: translateY(30px);
+}
+.windowset{
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
 }
 @keyframes animate {
     0% {
-        margin-top: 10%;
+        margin-top: 6%;
     }
     50% {
-        margin-top: 12%;
+        margin-top: 8%;
     }
     100% {
-        margin-top: 10%;
+        margin-top: 6%;
     }
+}
+
+.window1{
+    width: 450px;
+    left: 65%;
+    margin-top: 7%;
+}
+.window2{
+    width: 700px;
+    z-index: -1;
+}
+.window3{
+    width: 450px;
+    left: 8%;
+    margin-top: 7%;
+}
+
+@media (max-width: 1600px) {
+    .bringo {
+       left: 45%;
+    }
+}
+
+@media (max-width: 1400px) {
+    .bringo {
+        left: 40%;
+    }
+}
+
+@media (max-width: 1200px) {
+    .bringo {
+        left: 35%;
+    }
+}
+
+@media (max-width: 1000px) {
+    .bringo {
+        left: 30%;
+    }
+}
+
+@media (max-width: 800px) {
+    .bringo {
+        left: 20%;
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .bringo {
+        left: 10%;
+    }
+    .button{
+        background-color: white;
+        color:#B36FD4
+    }
+}
+
+@media (max-width: 400px){
+    .bringo {
+        left: 5%;
+    }
+   
 }
