@@ -4,6 +4,7 @@ import Timer from "./components/Timer";
 import Summary from "./components/Summary";
 import "./App.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import bringo from "./assets/bringo.png"
 
 const queryClient = new QueryClient();
 
@@ -17,21 +18,26 @@ function App() {
   };
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="App">
-        <header className="App-header">
-          <Timer />
-          <Summary />
-        </header>
-        <div style={{ padding: "20px", textAlign: "center" }}>
-          <h2>Ready for a Quiz?</h2>
-          <button
-            onClick={startQuiz}
-            style={{ padding: "10px", fontSize: "16px" }}
-          >
-            Start Quiz
-          </button>
+      <main className="main-container">
+        <Timer />
+        <Summary />
+        <div style={{ padding: "20px", textAlign: "center" }} className="container">
+          <h2 className="subtitle">Ready for a Quiz?</h2>
+          <div className="buttons">
+            <button
+              onClick={startQuiz}
+              style={{ padding: "10px", fontSize: "16px" }}
+            >
+              Start Quiz
+            </button>
+            <img src={bringo} alt="Bringo Mascot" width="80px" style={{
+              position: 'fixed',
+              right: '10px',
+              bottom: '1px'
+            }}/>
+          </div>
         </div>
-      </div>
+      </main>
     </QueryClientProvider>
   );
 }
