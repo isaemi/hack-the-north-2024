@@ -23,7 +23,7 @@ img{
     color: white;
     text-align: center;
 }
-.button{
+.button, .button:active{
     font-size: 30px;
     color: white;
     border: 3px solid white;
@@ -66,7 +66,7 @@ img{
         margin-top: 12%;
     }
     100% {
-        margin-top: 610%;
+        margin-top: 10%;
     }
 }
 
