@@ -21,8 +21,10 @@ export default function Summary() {
   }, []);
 
   const fetchSummary = async (url) => {
+    // Store current url in localStorage
+    localStorage.setItem("currentUrl", url);
     const response = await fetch(
-      `https://jrang188-server--8000.prod1.defang.dev/summarize?url={url}`
+      `https://jrang188-server--8000.prod1.defang.dev/summarize?url=${url}`
     );
     if (!response.ok) {
       throw new Error("Network response was not ok");

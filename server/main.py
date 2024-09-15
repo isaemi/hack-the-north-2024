@@ -111,7 +111,7 @@ async def quiz_endpoint(url: str, language="en", amount=1):
     # Store the quiz in MongoDB
     quiz = await add_quiz(Quiz(quiz=quiz_data["quiz"]))
     
-    return {"quiz_id": quiz["id"]}
+    return {"quiz_id": quiz["id"], "quiz": quiz["quiz"]}
 
 # Get all quizzes
 @app.get("/quizzes/")
