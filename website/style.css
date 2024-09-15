@@ -85,6 +85,11 @@ img{
     margin-top: 7%;
 }
 
+@media (max-width: 1700){
+    .bringo{
+        left: 50;
+    }
+}
 @media (max-width: 1600px) {
     .bringo {
        left: 45%;
