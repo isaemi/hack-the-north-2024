@@ -9,5 +9,6 @@
         "storage",
         "activeTab",
         "tab"
-    ]
+    ],
+    "quiz_page": "quiz.html"
 }
